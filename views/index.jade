@@ -1,16 +1,23 @@
 extends layout
 
 block content
-  div(class='navbar navbar-default navbar-fixed-top')  
-    div(class='container')
+  div(id='navbar' class='navbar navbar-default navbar-fixed-top')  
+    div(class='container-fluid')
       div(class='navbar-header')
-        div(class='container-fluid')
-          a(class='navbar-brand')
-            BRAND
+        a(class='navbar-brand') 
+          strong Dowser
+      div(class="collapse navbar-collapse" id="bs-example-navbar-collapse-1")
+        ul(class="nav navbar-nav")
+
   div(id='map')
 
-  div(id='side-bar' class='col-md-4 hide')
-
+  div(id='sb' class='col-md-4 hide')
+    li
+      h1(id='water_title') 
+    li 
+      h2(id='area')
+    li
+      h2(id='loss')
   script(type='text/javascript').
     var map = L.map("map").setView([37.75, -122.23], 8)
 
@@ -44,6 +51,7 @@ block content
       })
       map.fitBounds(bounds);
       water_area_2013.off("load")
+
     })
 
 
@@ -59,8 +67,9 @@ block content
       map.fitBounds(bounds);
 
 
-      var sidebar = document.getElementById('side-bar')
-      sidebar.classList.toggle('hide')
+      document.getElementById('sb').classList.toggle('hide')
+
+      document.getElementById('water_title').textContent = "Lake Oroville"
 
     })
 
@@ -82,12 +91,16 @@ block content
       query_2013.intersects(e.latlng).run(function(error, featureCollection, response){
         poly2013 = featureCollection.features[0].geometry['coordinates']
 
+       document.getElementById('area').textContent = 'Current Area:' + '16000'   
       })
       var poly2014
       query_2014.intersects(e.latlng).run(function(error, featureCollection, response){
         poly2014 = featureCollection.features[0].geometry['coordinates']
+        console.log(poly2014)
+
       })
 
+      document.getElementById('loss').textContent = 'Lossoss: '+ '15%'  
       console.log(poly2013)
       //Using a sample server for Geometry Services
       url = "https://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer/areasAndLengths?polygons=[{'rings':"+poly2013+"},{'rings':"+poly2014+"}]&f=json";
