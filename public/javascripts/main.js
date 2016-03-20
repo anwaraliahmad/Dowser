@@ -1,99 +1,52 @@
-L.esri.Support.cors = false;
+var map; // main map
 
-var geometry_service = L.esri.service({url: "https://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer/", 
-});
+var feature_layers = []; // Water boundaries by year for Lake Oroville 
 
-var map = L.map("map").setView([37.75, -122.23], 8);
+var feature_layers_url = [
 
+"http://services6.arcgis.com/bjVEhGT67TTSPHct/arcgis/rest/services/2013_Water_Boundaries/FeatureServer/3",
+"http://services6.arcgis.com/bjVEhGT67TTSPHct/arcgis/rest/services/2014_Water_Lines/FeatureServer/3"];
 
+require(
+  ["esri/map",
+  "esri/tasks/Query" 
+  "esri/geometry/geodesicUtils",
+  "esri/units",
+  "esri/symbols/SimpleMarkerSymbol",
+  "esri/renderers/SimpleRenderer",
+  "dojo/domReady",
+  "dojo/_base/Color"], 
+  function(Map, Query, geodesicUtils, Units) {
+    map = new Map("map", {
+      basemap: "topo",  // For full list of pre-defined basemaps, navigate to http://arcg.is/1JVo6Wd
+      center: [-122.45, 37.75], // longitude, latitude
+      zoom: 13
+    });
 
-L.esri.basemapLayer("Imagery").addTo(map);
-var water_area_2014 = L.esri.featureLayer({
-url: 'http://services6.arcgis.com/bjVEhGT67TTSPHct/arcgis/rest/services/2014_Water_Lines/FeatureServer/3',
+    var query = new Query();
+    query.returnGeometry = true;
+    map.on("load", init());
+    map.on("click", function(e){
 
-style: function(f) {
-  return {color: 'red', weight: 2}
-}
-}).addTo(map);
+    });
 
+    function init() {
 
-var water_area_2013 = L.esri.featureLayer({
-url: 'http://services6.arcgis.com/bjVEhGT67TTSPHct/arcgis/rest/services/2013_Water_Boundaries/FeatureServer/3',
-style: function(f) {
-  return {color: 'green', weight: 1}
-}
+      // Loading water boundaries 
+      for (var i = 0; i < feature_layers_url.length; i++) { 
+        var temp_layer = new esri.layers.FeatureLayer(feature_layers_url[i]);
+        feature_layers.push(temp_layer);
+        console.log(temp_layer);
+      }
+     // var areas = geodesicUtils.geodesicAreas(feature_layers, esri.Units.ACRES);
+      
+      map.addLayers(feature_layers); // Adding layers to map
 
-}).addTo(map);
-
-
-water_area_2013.on("load", function(e) {
-  var bounds = L.latLngBounds([]);
-  // loop through the features returned by the server
-  water_area_2013.eachFeature(function(layer) {
-    // get the bounds of an individual feature
-    var layerBounds = layer.getBounds();
-    // extend the bounds of the collection to fit the bounds of the new feature
-    bounds.extend(layerBounds);
-  })
-  map.fitBounds(bounds);
-  water_area_2013.off("load");
-
-});
-
-
-water_area_2013.on("click", function(e) {
-  var bounds = L.latLngBounds([])
-  // loop through the features returned by the server
-  water_area_2013 .eachFeature(function(layer) {
-    // get the bounds of an individual feature
-    var layerBounds = layer.getBounds();
-    // extend the bounds of the collection to fit the bounds of the new feature
-    bounds.extend(layerBounds)
-  })
-  map.fitBounds(bounds);
-
-
-  document.getElementById('sb').classList.toggle('hide')
-
-  document.getElementById('water_title').textContent = "Lake Oroville"
-
-});
-
-
-var query_2013  = L.esri.query({
-  url: "http://services6.arcgis.com/bjVEhGT67TTSPHct/arcgis/rest/services/2013_Water_Boundaries/FeatureServer/3"
-});
-
-var query_2014= L.esri.query({
-  url: "http://services6.arcgis.com/bjVEhGT67TTSPHct/ArcGIS/rest/services/2014_Water_Lines/FeatureServer/3"
-});
-
-
-
-map.on('click', function(e) {
-
-  query_2013.intersects(e.latlng).run(function(error, featureCollection, response){
-    var poly2013 = featureCollection.features[0].geometry['coordinates'];
-    
-    poly2013.push(poly2013[0][0]);
-    for (var i = 0; i < poly2013[0].length;i++ ) {
-
-     console.log(poly2013[0][i]);
     }
-    geometry_service.get('areasAndLengths', {
-      sr: 102100,
-      polygons: [{rings: [poly2013]}]}, 
-      function (error, response){});
-   document.getElementById('area').textContent = 'Current Area:' + '16000';
-  })
-  
-
-
-  document.getElementById('loss').textContent = 'Loss: '+ '15%';  
-  //Using a sample server for Geometry Services
-  var url = "https://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer/areasAndLengths?"+"s"+"&f=json";
 
 
 
 
 });
+
+
